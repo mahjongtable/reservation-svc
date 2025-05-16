@@ -8,6 +8,8 @@ edition = "2024"
 [dependencies]
 prost = "0.13.5"
 prost-types = "0.13.5"
+sqlx = { version = "0.8.5", features = ["chrono", "postgres", "runtime-tokio-rustls", "uuid"] }
+tonic = "0.13.1"
 
 [build-dependencies]
 tonic-build = "0.13.1"
