@@ -5,3 +5,7 @@ edition = "2024"
 
 [dependencies]
 abi ={ path = "../abi"}
+async-trait = "0.1.88"
+chrono = { version = "0.4.41", features = ["serde"] }
+sqlx = { version = "0.8.5", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+thiserror = "2.0.12"
