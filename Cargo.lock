@@ -1356,6 +1356,7 @@ dependencies = [
  "abi",
  "async-trait",
  "chrono",
+ "prost-types",
  "sqlx",
  "thiserror",
 ]

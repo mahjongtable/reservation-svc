@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO reservation.reservations (user_id, resource_id, status, time_span, note) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "reservation.reservation_status",
+            "kind": {
+              "Enum": [
+                "unknown",
+                "pending",
+                "confirmed",
+                "blocked"
+              ]
+            }
+          }
+        },
+        "TstzRange",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "72f1b4fc516b353bf82a1922914bbf4759e65527090d4d5365dc8608d0f70221"
+}

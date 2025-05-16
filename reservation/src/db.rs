@@ -2,7 +2,7 @@ pub mod postgresql {
     use abi::pb::reservation::{Query as ReservationQuery, Reservation};
     use sqlx::{PgPool, postgres::types::PgRange};
 
-    use crate::{RepositoryError, ReservationId, ReservationRepository};
+    use crate::{RepositoryError, ReservationId, ReservationRepository, convert::DatetimeWrapper};
 
     pub struct PgReservationRepository {
         pool: PgPool,
@@ -11,15 +11,27 @@ pub mod postgresql {
     #[async_trait::async_trait]
     impl ReservationRepository for PgReservationRepository {
         async fn create(&self, reservation: Reservation) -> Result<Reservation, RepositoryError> {
-            let sql = "INSERT INTO reservation (user_id, resource_id, status, time_span, note) VALUES ($1, $2, $3, $4, $5) RETURNING id";
-
             // handle none value of start or end time.
             if reservation.start_at.is_none() || reservation.end_at.is_none() {
                 return Err(RepositoryError::InvalidTimestampRange);
             }
 
-            let start_at = reservation.start_at.unwrap().seconds;
-            let end_at = reservation.end_at.unwrap().seconds;
+            let start_at_timestamp = reservation
+                .start_at
+                .ok_or(RepositoryError::InvalidTimestamp)?;
+            let end_at_timestamp = reservation
+                .end_at
+                .ok_or(RepositoryError::InvalidTimestamp)?;
+
+            let datetime_wrapper: DatetimeWrapper = start_at_timestamp
+                .try_into()
+                .map_err(|_| RepositoryError::InvalidTimestamp)?;
+            let start_at = datetime_wrapper.into_inner();
+
+            let datetime_wrapper: DatetimeWrapper = end_at_timestamp
+                .try_into()
+                .map_err(|_| RepositoryError::InvalidTimestamp)?;
+            let end_at = datetime_wrapper.into_inner();
 
             if start_at >= end_at {
                 return Err(RepositoryError::InvalidTimestampRange);
@@ -27,19 +39,16 @@ pub mod postgresql {
 
             let time_span = PgRange::from(start_at..end_at);
 
-            let new_id: i64 = sqlx::query_as(sql)
-                .bind(reservation.user_id)
-                .bind(reservation.resource_id)
-                .bind(reservation.status)
-                .bind(time_span)
-                .bind(reservation.note)
-                .fetch_one(&self.pool)
-                .await
-                .map_err(|err| RepositoryError::DatabaseError(err))
-                .map(|row: (i64,)| row.0)
-                .unwrap();
+            let uuid = sqlx::query!(
+                "INSERT INTO reservation.reservations (user_id, resource_id, status, time_span, note) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+                reservation.user_id,
+                reservation.resource_id,
+                reservation.status as i32,
+                time_span,
+                reservation.note
+            ).fetch_one(&self.pool).await.map_err(|db_err| RepositoryError::DatabaseError(db_err)).map(|record| record.id)?;
 
-            println!("new_id: {}", new_id);
+            println!("got uuid: {}", uuid);
 
             todo!()
         }
@@ -76,5 +85,4 @@ pub mod postgresql {
     }
 }
 
-pub mod mysql {
-}
+pub mod mysql {}
