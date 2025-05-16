@@ -1,0 +1,5 @@
+-- Add up migration script here
+-- CREATE OR REPLACE FUNCTION reservation.query(user_id text, resource_id text, during TSTZRANGE) RETURNS TABLE (LIKE reservation.reservations) AS
+-- $$
+-- $$
+-- LANGUAGE PLPGSQL;
