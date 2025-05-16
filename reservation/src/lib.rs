@@ -1,5 +1,6 @@
 mod error;
 mod db;
+mod convert;
 
 use abi::pb::reservation::{Query as ReservationQuery, Reservation, ReservationChangelogOprType};
 pub use error::RepositoryError;
