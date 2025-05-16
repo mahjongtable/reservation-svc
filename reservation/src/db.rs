@@ -8,6 +8,12 @@ pub mod postgresql {
         pool: PgPool,
     }
 
+    impl PgReservationRepository {
+        pub fn new(pool: PgPool) -> Self {
+            Self { pool }
+        }
+    }
+
     #[async_trait::async_trait]
     impl ReservationRepository for PgReservationRepository {
         async fn create(&self, reservation: Reservation) -> Result<Reservation, RepositoryError> {
@@ -86,3 +92,40 @@ pub mod postgresql {
 }
 
 pub mod mysql {}
+
+#[cfg(test)]
+pub mod tests {
+    use abi::pb::reservation::Reservation;
+    use chrono::{DateTime, Utc};
+    use prost_types::Timestamp;
+    use sqlx::PgPool;
+
+    use crate::{
+        ReservationRepository, convert::DatetimeWrapper, db::postgresql::PgReservationRepository,
+    };
+
+    #[sqlx::test]
+    async fn test_create_reservation(pool: PgPool) -> sqlx::Result<()> {
+        let pool = pool;
+        let pg_repo = PgReservationRepository::new(pool);
+
+        let result = pg_repo
+            .create(Reservation {
+                id: "reservation_id_123".to_string(),
+                user_id: "user_id_221".to_string(),
+                resource_id: "resource_id_300".to_string(),
+                status: 1,
+                // todo: make a mock timestamp here.
+                start_at: None,
+                // todo: make a mock timestamp here.
+                end_at: None,
+                note: "This is a note for the reservation".to_string(),
+            })
+            .await
+            .unwrap();
+
+        println!("reservation created successfully: {:?}", result);
+
+        Ok(())
+    }
+}
