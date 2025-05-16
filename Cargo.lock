@@ -3,6 +3,16 @@
 version = 4
 
 [[package]]
+name = "abi"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "prost-types",
+ "tonic",
+ "tonic-build",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1341,11 +1351,9 @@ name = "reservation-svc"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "prost",
  "prost-types",
  "sqlx",
  "tonic",
- "tonic-build",
 ]
 
 [[package]]
