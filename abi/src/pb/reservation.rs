@@ -97,9 +97,10 @@ pub struct CancelResponse {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum ReservationStatus {
-    StatusPending = 0,
-    StatusConfirmed = 1,
-    StatusBlocked = 2,
+    StatusUnknown = 0,
+    StatusPending = 1,
+    StatusConfirmed = 2,
+    StatusBlocked = 3,
 }
 impl ReservationStatus {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -108,6 +109,7 @@ impl ReservationStatus {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            Self::StatusUnknown => "STATUS_UNKNOWN",
             Self::StatusPending => "STATUS_PENDING",
             Self::StatusConfirmed => "STATUS_CONFIRMED",
             Self::StatusBlocked => "STATUS_BLOCKED",
@@ -116,6 +118,7 @@ impl ReservationStatus {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "STATUS_UNKNOWN" => Some(Self::StatusUnknown),
             "STATUS_PENDING" => Some(Self::StatusPending),
             "STATUS_CONFIRMED" => Some(Self::StatusConfirmed),
             "STATUS_BLOCKED" => Some(Self::StatusBlocked),
