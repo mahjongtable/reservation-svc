@@ -4,9 +4,9 @@ use prost_types::Timestamp;
 pub struct DatetimeWrapper(DateTime<Utc>);
 
 impl DatetimeWrapper {
-    // pub fn new(dt: DateTime<Utc>) -> Self {
-    //     Self(dt)
-    // }
+    pub fn new(dt: DateTime<Utc>) -> Self {
+        Self(dt)
+    }
 
     pub fn into_inner(self) -> DateTime<Utc> {
         self.0
