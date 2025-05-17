@@ -3,7 +3,7 @@ pub mod postgresql {
         convert_to_utc_datetime_from,
         pb::reservation::{Query as ReservationQuery, Reservation, ReservationStatus},
     };
-    use sqlx::{postgres::types::PgRange, PgPool, Row};
+    use sqlx::{PgPool, Row, postgres::types::PgRange};
 
     use crate::{RepositoryError, ReservationId, ReservationRepository};
 
@@ -19,7 +19,10 @@ pub mod postgresql {
 
     #[async_trait::async_trait]
     impl ReservationRepository for PgReservationRepository {
-        async fn create(&self, mut reservation: Reservation) -> Result<Reservation, RepositoryError> {
+        async fn create(
+            &self,
+            mut reservation: Reservation,
+        ) -> Result<Reservation, RepositoryError> {
             // handle none value of start or end time.
             if reservation.start_at.is_none() || reservation.end_at.is_none() {
                 return Err(RepositoryError::InvalidTimestampRange);
@@ -93,22 +96,21 @@ pub mod mysql {}
 
 #[cfg(test)]
 pub mod tests {
-    use abi::pb::reservation::{Reservation, ReservationStatus};
-    use chrono::{DateTime, Utc};
+    use abi::{
+        convert_to_timestamp_from,
+        pb::reservation::{Reservation, ReservationStatus},
+    };
+    use chrono::Utc;
     use sqlx::PgPool;
 
-    use crate::{
-        RepositoryError, ReservationRepository, convert::DatetimeWrapper,
-        db::postgresql::PgReservationRepository,
-    };
+    use crate::{RepositoryError, ReservationRepository, db::postgresql::PgReservationRepository};
 
     #[sqlx::test(migrations = "../migrations")]
     async fn creating_should_work(pool: PgPool) -> sqlx::Result<()> {
         let pool = pool;
         let pg_repo = PgReservationRepository::new(pool);
 
-        let start_at_dt = DatetimeWrapper::new(Utc::now());
-        let end_at_dt = DatetimeWrapper::new(Utc::now());
+        let utc_now = Utc::now();
 
         let result = pg_repo
             .create(Reservation {
@@ -117,9 +119,9 @@ pub mod tests {
                 resource_id: "resource_id_300".to_string(),
                 status: ReservationStatus::StatusPending as i32,
                 // todo: make a mock timestamp here.
-                start_at: Some(start_at_dt.into()),
+                start_at: Some(convert_to_timestamp_from(utc_now.with_timezone(&Utc))),
                 // todo: make a mock timestamp here.
-                end_at: Some(end_at_dt.into()),
+                end_at: Some(convert_to_timestamp_from(utc_now.with_timezone(&Utc))),
                 note: "This is a note for the reservation".to_string(),
             })
             .await
@@ -159,7 +161,6 @@ pub mod tests {
         let conflict_err = pg_repo.create(reservation2).await.unwrap_err();
 
         println!("{:#?}", conflict_err);
-
 
         Ok(())
     }
