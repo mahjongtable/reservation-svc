@@ -10,4 +10,13 @@ pub enum RepositoryError {
 
     #[error("invalid timestamp.")]
     InvalidTimestamp,
+
+    #[error("reservation status is unknown")]
+    UnknownReservationStatus,
 }
+
+// impl From<sqlx::Error> for RepositoryError {
+//     fn from(value: sqlx::Error) -> Self {
+//         todo!()
+//     }
+// }
