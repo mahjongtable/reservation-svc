@@ -1,8 +1,7 @@
-mod error;
 mod db;
-mod convert;
+mod error;
 
-use abi::pb::reservation::{Query as ReservationQuery, Reservation, ReservationChangelogOprType};
+use abi::pb::reservation::{Query as ReservationQuery, Reservation, ReservationStatus};
 pub use error::RepositoryError;
 
 pub type ReservationId = String;
