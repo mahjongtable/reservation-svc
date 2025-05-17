@@ -9,6 +9,7 @@ dependencies = [
  "chrono",
  "prost",
  "prost-types",
+ "sqlx",
  "tonic",
  "tonic-build",
 ]

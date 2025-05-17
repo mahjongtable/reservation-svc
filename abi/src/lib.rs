@@ -5,6 +5,7 @@ use std::fmt::Display;
 use chrono::{DateTime, FixedOffset, Utc};
 use pb::reservation::{Reservation, ReservationStatus};
 use prost_types::Timestamp;
+use sqlx::{FromRow, Postgres, Row, postgres::PgRow};
 
 impl Reservation {
     pub fn new_pending(
@@ -23,6 +24,22 @@ impl Reservation {
             end_at: Some(convert_to_timestamp_from(end_at.with_timezone(&Utc))),
             note,
         }
+    }
+}
+
+impl FromRow<'_, PgRow> for Reservation {
+    fn from_row(row: &'_ PgRow) -> Result<Self, sqlx::Error> {
+        Ok(Self {
+            id: row.get("id"),
+            user_id: row.get("user_id"),
+            resource_id: row.get("resource_id"),
+            status: row.get("status"),
+            // TODO: need to convert database timestamp to prost::Timestamp.
+            start_at: Some(todo!()),
+            // TODO: need to convert database timestamp to prost::Timestamp.
+            end_at: Some(todo!()),
+            note: row.get("note"),
+        })
     }
 }
 

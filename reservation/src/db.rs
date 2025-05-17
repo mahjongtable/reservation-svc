@@ -64,6 +64,8 @@ pub mod postgresql {
             &self,
             reservation_id: ReservationId,
         ) -> Result<Reservation, RepositoryError> {
+            // sqlx::query_as(Reservation, "UPDATE reservation.reservations SET status = 'confirmed' WHERE id = $1 AND status = 'pending' RETURN *").bind(reservation_id).fetch_one(&self.pool).await.unwrap();
+
             todo!()
         }
 
