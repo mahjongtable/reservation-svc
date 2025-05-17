@@ -3,7 +3,7 @@ pub mod postgresql {
         convert_to_utc_datetime_from,
         pb::reservation::{Query as ReservationQuery, Reservation, ReservationStatus},
     };
-    use sqlx::{PgPool, postgres::types::PgRange};
+    use sqlx::{postgres::types::PgRange, PgPool, Row};
 
     use crate::{RepositoryError, ReservationId, ReservationRepository};
 
@@ -19,7 +19,7 @@ pub mod postgresql {
 
     #[async_trait::async_trait]
     impl ReservationRepository for PgReservationRepository {
-        async fn create(&self, reservation: Reservation) -> Result<Reservation, RepositoryError> {
+        async fn create(&self, mut reservation: Reservation) -> Result<Reservation, RepositoryError> {
             // handle none value of start or end time.
             if reservation.start_at.is_none() || reservation.end_at.is_none() {
                 return Err(RepositoryError::InvalidTimestampRange);
@@ -43,20 +43,18 @@ pub mod postgresql {
 
             let time_span = PgRange::from(start_at..end_at);
 
-            println!("{}", reservation.status.to_string());
-
-            let res = sqlx::query("INSERT INTO reservation.reservations (user_id, resource_id, status, time_span, note) VALUES ($1, $2, $3::reservation.reservation_status, $4, $5) RETURNING *")
-                .bind(reservation.user_id)
-                .bind(reservation.resource_id)
-                .bind(ReservationStatus::try_from(reservation.status).unwrap().to_string())
+            let res: String = sqlx::query("INSERT INTO reservation.reservations (user_id, resource_id, status, time_span, note) VALUES ($1, $2, $3::reservation.reservation_status, $4, $5) RETURNING id")
+                .bind(reservation.user_id.to_string())
+                .bind(reservation.resource_id.to_string())
+                .bind(ReservationStatus::try_from(reservation.status).map_err(|_| RepositoryError::UnknownReservationStatus)?.to_string())
                 .bind(time_span)
-                .bind(reservation.note)
+                .bind(reservation.note.to_string())
                 .fetch_one(&self.pool)
-                .await?;
+                .await?.get(0);
 
-            println!("got uuid: {:?}", res);
+            reservation.id = res;
 
-            Ok(Reservation::default())
+            Ok(reservation)
         }
 
         async fn change_status(
@@ -158,7 +156,10 @@ pub mod tests {
             "It's a second reservation to be held".to_string(),
         );
 
-        pg_repo.create(reservation2).await.unwrap();
+        let conflict_err = pg_repo.create(reservation2).await.unwrap_err();
+
+        println!("{:#?}", conflict_err);
+
 
         Ok(())
     }
